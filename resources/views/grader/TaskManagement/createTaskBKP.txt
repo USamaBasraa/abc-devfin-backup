@@ -1,0 +1,750 @@
+@extends('layouts.app',['pageTitle' => ''])
+
+@section('content')
+<style>
+        .delete-button {
+        background-color: transparent;
+        border: none;
+        }
+        .row {
+    display: flex;
+    flex-wrap: wrap;
+    }
+    .card_header{
+        border: 1px solid black;
+        border-radius:10px 10px 0px 0px;
+        padding:1%; 
+        font-size:18px;
+        margin:2% 5% 0% 5%;
+        background-color:#D2D6F1;
+    }
+    .bottom_tr{
+        border: 1px solid black;
+        border-radius:0px 0px 10px 10px;
+        /* padding:5%; */
+        font-size:18px;
+        margin:0% 5% 5% 5%;
+    }
+    .resources_div{
+        border-bottom:solid 1px black;
+        padding:2px;
+        font-size:18px;
+    }
+    .for_li{
+         /* border:solid 1px green;  */
+         margin-left:1%;
+         font-size: 20px !important;
+    }
+
+    .description-wrapper {
+        float: left;
+        width: 70%;
+        margin-left:3%;
+        /* border:solid 1px red; */
+    }
+    .button-wrapper {
+    float: left;
+    width: 22%;
+    /* padding-top:2%; */
+    text-align: center;
+    /* border:solid 1px green; */
+    }
+    label {
+        font-weight: bold;
+        font-size: 18px;
+        color:#4454C3 !important;
+    }
+    .btn_custome{
+        height:80% !important;
+        width:90% !important;
+    }
+    @media (min-width: 768px) {
+    .description-wrapper {
+        width: 80%;
+        margin-left:1.5%;
+        float: left;
+        /* border:solid 1px black; */
+    }
+
+    .button-wrapper {
+        width: 16%;
+        text-align: left;
+        float: left;
+        /* border:solid 1px black; */
+        padding-top:3%;
+    }
+    .check_uncheck_all_tr{
+         border-bottom:solid 2px black;
+         font-size:20px;
+         color:green;
+    }
+    }
+  </style>
+<div style="background-color:white;margin-left:auto;margin-right:auto;width:100%;">
+    <div style="border:solid 2px black;margin-left:auto;margin-right:auto;width:90%;">
+        <div class="jumbotron text-center">
+            <h1>Task Management</h1> 
+        </div>
+        <div class="page-body">
+            <div class="col-sm-12">
+                <form id="taskForm" action="{{url('dboard_submit') }}" method="POST">
+                    @csrf
+    <div class="container">
+     
+      <div class="row">
+            <div class="col-sm-12">
+                <label for="Task Type">Task Type:</label>
+                <select class="form-control" name="task_type" id="task_type">
+                    {{-- <option selected="selected">--Select Activity --</option> --}}
+                    <option>Task</option>
+                    <option selected="selected">ToDo</option>
+                </select>
+                <input type="hidden" id="entry_user_id" name="entry_user_id" value="<?=auth()->user()->employee_id;?>">
+            </div>
+        </div> 
+       <!-- --------------- -->
+       @php 
+            $taskController = new \App\Http\Controllers\Grader\TaskManagement\TaskManagementController();
+            $taskCategory= $taskController->getTaskCategory();
+        @endphp
+       <div class="container">
+  <div class="row">
+   <?php 
+        $sub_count = 1;   
+        foreach ($taskCategory as $rec):
+    ?> 
+    <div class="col-md-3">
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="radioGroup" id="radio1" value="option1">
+        <label class="form-check-label" for="radio1">
+          {{$rec->category_title}}
+        </label>
+      </div>
+    </div>
+    <!-- <div class="col-md-3">
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="radioGroup" id="radio2" value="option2">
+        <label class="form-check-label" for="radio2">
+          Option 2
+        </label>
+      </div>
+    </div> -->
+    <!-- <div class="col-md-3">
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="radioGroup" id="radio3" value="option3">
+        <label class="form-check-label" for="radio3">
+          Option 3
+        </label>
+      </div>
+    </div> -->
+    <!-- <div class="col-md-3">
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="radioGroup" id="radio4" value="option4">
+        <label class="form-check-label" for="radio4">
+          Option 4
+        </label>
+      </div>
+    </div> -->
+    <?php
+            
+        endforeach;
+    ?> 
+  </div>
+</div>
+ <hr>
+        <!-- ----------- -->
+      
+    <div class="row"  id="show_staff_pannel" style="display:none">
+        <div class="col-sm-12">
+                        <label for="staff">School / Department :</label>
+                        <select name="staff" id="staff" class="form-control select2" style="width:100% !important;">
+                            <option value="0|<?=auth()->user()->employee_id;?>|3" style="background-color: yellow;font-weight: bold;">Select School / Department / Staff:</option>
+                            @foreach ($staffMembers as $staff)
+                                <option value="{{$staff->parent_id . '|' . $staff->id. '|' . $staff->ordername }}">
+                                    {{ $staff->name }} 
+                                    @if(strlen(trim($staff->code))>0)
+                                        ({{$staff->code}})
+                                    @endif
+                                </option>
+                            @endforeach
+                        </select>
+        </div>
+   </div>    
+<div class="row" id="user_and_me_divs" style="display:none">
+    <div class="col-sm-12">
+        <table id="userDataBody"></table>
+    </div> 
+ <div class="col-sm-6" style="display:none" >
+    <table>
+                                    <tr>
+                                        <th> <br>
+                                             <input type="checkbox" checked="checked" id="assign_me"  name="user_id[]" value="<?=auth()->user()->employee_id;?>"> 
+                                        </th>
+                                    </tr>    
+                                    <tr class="check_uncheck_all_tr">
+                                        <th>
+                                            <strong class="form-control">Assign to Me </strong>
+                                        </th>
+                                    </tr> 
+                            </table>   
+    </div>  
+</div>
+<div class="row" id="date_time_desc_group"  style="display:none">
+        <div class="col-sm-6"> 
+                <div class="row" >
+                    <div class="col-sm-12">
+                        <label for="task_title">Task / Project :</label>
+                        <input type="textbox" name="description" class="form-control" id="description" >
+                    </div>
+                </div>   
+                <div class="row" >
+                        <div class="col-sm-12">
+                            <label for="description">Description:</label>
+                            <textarea name="task_title" id="task_title" class="form-control" placeholder="Please enter something "  rows="2" cols="40"></textarea>
+                            <!-- <span style="color:red">Please enter something press enter key or click on Add button</span>     -->
+                        </div>
+                        <!-- <div class="col-sm-2">
+                            <label for="forbutton"><span style="color:white">--</span></label>
+                            <button type="button" class="btn btn-outline-success" onclick="addValue()"> Add </button>
+                        </div> -->
+                </div>
+        </div> 
+        <div class="col-sm-6">  
+                <div class="row" id="type_desc_button">
+                        <div class="col-sm-10">
+                            <label for="completion_date">Reporting Date:</label>
+                            <input type="date" name="completion_date" class="form-control" id="completion_date" onchange="handleDateSelection()">
+                        </div>
+                </div>
+                <div class="row" id="type_desc_button">
+                        <div class="col-sm-10">
+                        <label for="completion_time">Reporting Time:</label>
+                            <select name="completion_time" class="form-control" id="completion_time">
+                        <?php
+                                $start_time = strtotime('00:00');
+                                $end_time = strtotime('23:00');
+                                $interval = 60 * 60; // 1 hour interval
+
+                                for ($time = $start_time; $time <= $end_time; $time += $interval) {
+                                    $display_time = date('h:i A', $time);
+                                    $option_value = date('H:i', $time);
+                                    $selected = ($option_value === '09:00') ? 'selected' : '';
+
+                                    echo '<option value="' . $option_value . '" ' . $selected . '>' . $display_time . '</option>';
+                                }
+                        ?>
+                        </select>
+                        </div>
+                </div>
+        </div>        
+</div>
+<div class="row" id="points_heading" style="display:n1one">
+    <div class="col-sm-12" id="show_list">
+        <div class="row" style="background-color:gray;padding: 4px;" >
+            <div class="col-sm-3 for_task_show">
+                    Title
+                    <inpu type="text" name="task_point_desc[]" value="taskname">
+            </div>
+            <div class="col-sm-3 for_task_date">
+                    Date
+                    <inpu type="text" name="task_point_date[]" value="taskname">
+            </div>
+            <div class="col-sm-3 for_task_time">
+                    Time
+                    <inpu type="text" name="task_point_time[]" value="taskname">
+            </div>
+            <div class="col-sm-3 for_task_remove">
+                    Remove
+            </div>
+        </div> 
+    </div>
+</div>   
+<div id="append_desc_date_time"></div>
+
+<div class="row">
+    <div class="col-sm-12">
+            <ul id="valueList"></ul> 
+    </div>
+</div>
+
+                    <!-- <div class="row" id="report_date_time" style="display:none">
+                        <div class="col">
+                            
+                        </div>
+                        <div class="col">
+                            
+                        </div>
+                    </div>  -->
+                    <div class="row" id="only_button" style="display:none">
+                        <div class="col-sm-12">
+                            <br>
+                            <!-- <button type="submit" class="btn-block btn btn-success" ><i class="fe fe-check mr-2"></i>Submit Task</button> -->
+                            <button type="submit" class="btn-block btn btn-success">
+                                <i class="fe fe-check mr-2"></i>Submit Task
+                            </button>
+                            
+                            <br>    
+                        </div>
+                    </div>    
+                </form>
+                <div class="row" style="display:none">
+                        <div id="taskTable" class="col-sm-12"></div>
+
+                    <!-- <table id="taskTable" class="table">
+                        <thead>
+                            <tr>
+                            <th>Task Type</th>
+                            <th>Task Lists</th>
+                            <th>Reporting Date / Time</th>
+                            <th>Users</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table> -->
+                </div>
+            </div>
+        </div>
+    </div> 
+</div>
+@endsection
+@section('javascript')
+<script>
+    function submitTask() {
+
+       
+    var submitButton = document.querySelector(".btn-success");
+
+    // Disable the submit button
+    submitButton.disabled = true;
+
+    // Display the "Data is processing" message
+    submitButton.innerHTML = '<i class="fe fe-loader mr-2"></i>Data is processing...';
+
+    // Simulate a delay of 2 seconds (2000 milliseconds)
+
+
+    setTimeout(function() {
+        // Enable the submit button
+        submitButton.disabled = false;
+
+        // Display the "Data saved successfully" message
+        submitButton.innerHTML = '<i class="fe fe-check mr-2"></i>Data saved successfully';
+
+        // Reset the message after 2 seconds
+        setTimeout(function(event) {
+            //event.preventDefault();
+            submitButton.innerHTML = '<i class="fe fe-check mr-2"></i>Submit Task';
+               
+           // document.getElementById('taskForm').submit();
+        }, 2000);
+    }, 2000);
+}
+var values = [];
+// Initialize a counter variable
+// Initialize a counter variable
+var counter = 1;
+
+function handleDateSelection() {
+    // Get the selected date from the completion_date input field
+    var selectedDate = document.getElementById("completion_date").value;
+    $('#only_button').show();
+}
+
+// Function to add a value to the list
+function addValue($value) {
+    $('#points_heading').show();
+    $('#only_button').show();
+    
+
+
+    var textInput = document.getElementById("description");
+    var completionDateInput = document.getElementById("completion_date");
+    var completionTimeInput = document.getElementById("completion_time");
+
+    var value = textInput.value.trim();
+    var completionDate = completionDateInput.value.trim();
+    var completionTime = completionTimeInput.value.trim();
+
+
+    //------------
+// Get the show_list div
+var showListDiv = document.getElementById("show_list");
+
+// Create the row div
+var rowDiv = document.createElement("div");
+rowDiv.className = "row";
+
+// Create the task name div
+var taskNameDiv = document.createElement("div");
+taskNameDiv.className = "col-sm-3 for_task_show";
+taskNameDiv.textContent = value;
+
+// Create the task name textbox
+var taskNameTextbox = document.createElement("input");
+taskNameTextbox.type = "hidden";
+taskNameTextbox.name = "task_point_desc[]";
+taskNameTextbox.value = value;
+taskNameDiv.appendChild(taskNameTextbox);
+
+// Create the task date div
+var taskDateDiv = document.createElement("div");
+taskDateDiv.className = "col-sm-3 for_task_date";
+taskDateDiv.textContent = completionDate;
+
+// Create the task date textbox
+var taskDateTextbox = document.createElement("input");
+taskDateTextbox.type = "hidden";
+taskDateTextbox.name = "task_point_date[]";
+taskDateTextbox.value = completionDate;
+taskDateDiv.appendChild(taskDateTextbox);
+
+// Create the task time div
+var taskTimeDiv = document.createElement("div");
+taskTimeDiv.className = "col-sm-3 for_task_time";
+taskTimeDiv.textContent = completionTime;
+
+// Create the task time hidden input
+var taskTimeHiddenInput = document.createElement("input");
+taskTimeHiddenInput.type = "hidden";
+taskTimeHiddenInput.name = "task_point_time[]";
+taskTimeHiddenInput.value = completionTime;
+taskTimeDiv.appendChild(taskTimeHiddenInput);
+
+// Create the task remove div
+var taskRemoveDiv = document.createElement("div");
+taskRemoveDiv.className = "col-sm-3 for_task_remove";
+
+// Create the remove button
+var removeButton = document.createElement("input");
+removeButton.type = "button";
+removeButton.value = "Remove It !";
+removeButton.addEventListener("click", function() {
+  showListDiv.removeChild(rowDiv);
+});
+
+taskRemoveDiv.appendChild(removeButton);
+
+// Append the divs to the row div
+rowDiv.appendChild(taskNameDiv);
+rowDiv.appendChild(taskDateDiv);
+rowDiv.appendChild(taskTimeDiv);
+rowDiv.appendChild(taskRemoveDiv);
+
+// Append the row div to the show_list div
+showListDiv.appendChild(rowDiv);
+textInput.value = '';
+
+}    
+
+function addValue2() {
+  var textInput = document.getElementById("description");
+  var value = textInput.value.trim();
+
+  // Add value to the array and update the list
+  if (value !== "") {
+    var listItem = document.createElement("li");
+    listItem.className = "value-item for_li"; // Add both "value-item" and "for_li" classes
+    var serialNumber = document.createElement("span");
+    serialNumber.appendChild(document.createTextNode(counter + ") "));
+    listItem.appendChild(serialNumber);
+    var valueText = document.createElement("span");
+    valueText.appendChild(document.createTextNode(value));
+    listItem.appendChild(valueText);
+    var deleteButton = document.createElement("button");
+    deleteButton.className = "delete-button";
+    deleteButton.innerHTML = '<i class="fa fa-times"></i>'; // Font Awesome trash icon
+    deleteButton.onclick = function () {
+      deleteValue(value);
+      listItem.remove();
+    };
+    listItem.appendChild(deleteButton);
+    document.getElementById("valueList").appendChild(listItem);
+    textInput.value = "";
+    
+    // Increment the counter for the next value
+    counter++;
+  }
+}
+
+
+// Add event listener for Enter key press
+document.getElementById("description").addEventListener("keydown", function(event) {
+  if (event.keyCode === 13) { // Check if Enter key was pressed
+    event.preventDefault(); // Prevent the default Enter key behavior (new line)
+    addValue(); // Call the addValue() function
+  }
+});
+
+// Function to delete a value from the list
+function deleteValue(value) {
+  var index = values.indexOf(value);
+  if (index !== -1) {
+    values.splice(index, 1);
+  }
+}
+
+function toggleCheckAll(checkbox) {
+  var checkboxes = document.getElementsByName('user_id[]');
+
+  for (var i = 0; i < checkboxes.length; i++) {
+   // alert(i);
+    checkboxes[i].checked = checkbox.checked;
+  }
+}
+
+ // AJAX function to submit the form
+ $(document).ready(function() {
+
+        $('.select2').select2();
+        $('#show_staff_pannel').hide();
+        $('#user_and_me_div').hide();
+        $('#date_time_desc_group').show();
+function fetchTasks() {
+$.ajax({
+url: '/fetch-tasks', // Replace 'fetch_tasks' with the appropriate route for fetching tasks
+type: 'GET',
+headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+success: function(response) {
+// Clear the existing table rows
+$('#taskTable').empty();
+
+// Loop through tasks and append them to the table
+var taskid = "";
+
+   // console.log(response[0].resources);
+   
+   $.each(response, function(index, task) {
+
+    var newRow = '<div class="row card_header">';
+            newRow+='<div class="col-sm-6">' + task.task_type + '</div>';
+            newRow+='<div class="col-sm-6"><strong>Reporting: Date / Time : </strong>' + task.completion_date +' '+task.task_report_time+'</div>';
+        newRow+= '</div>';
+
+        newRow+= '<div class="row bottom_tr">';
+        
+        newRow+='<div class="col-sm-6">';
+        newRow+='<div style="font-size:20px"><i class="fa fa-tasks" style="font-size:16px;color:blue;"><strong style="color:black">&nbsp;&nbsp;Task Points</strong></i></div>';
+        for (var j = 0; j < task.task_list.length; j++) {
+            newRow+='<div class="resources_div">' + task.task_list[j].tm_description + '</div>';
+        }
+        newRow+='</div>';
+       
+        newRow+='<div  class="col-sm-6">';
+        newRow+='<div style="font-size:20px"><i class="fa fa-users" style="font-size:16px;color:green;"><strong>&nbsp;&nbsp;Task Resources</strong></i></div>';
+        for (var i = 0; i < task.resources.length; i++) {
+            newRow+='<div class="resources_div">' + task.resources[i].employee_name + '</div>';
+        }
+        newRow+='</div>';
+    newRow+='</div>';
+  $('#taskTable').append(newRow);
+});
+
+
+},
+error: function(xhr, status, error) {
+// Display error message or perform any other actions
+alert('An error occurred while fetching tasks.');
+}
+});
+}
+
+// Call the fetchTasks function on page load
+fetchTasks();
+
+
+// Function to fetch data and append it to the table
+function fetchData(selectedStaffId) {
+    // Send AJAX request to fetch data
+    $.ajax({
+        url: '{{ route('fetch_staff_data') }}',
+        type: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        data: {
+            staffId: selectedStaffId
+        },
+        success: function(response) {
+            // Clear existing table rows
+            $('#userDataBody').empty();
+            $('#user_and_me_div').show();
+            $('#type_desc_button').show();
+            $('#report_date_time').show();
+           // $('#only_button').show();
+            $('#show_staff_pannel').show();
+            $('#show_staff_pannel').css('width', '100%');
+            
+            var newRow = '<tr class="check_uncheck_all_tr" style="display:none">' +
+                    '<th><input type="checkbox" class="form-control"  name="user_id[]" value="1" onclick="toggleCheckAll(this)"> </th>' +
+                    '<th>Check / Uncheck All</th>' +
+                    '</tr>';
+            $('#userDataBody').append(newRow);  
+            newRow = '<tr>';      
+            $.each(response.data, function(index, user) {
+                // Check if user ID already exists in the list
+                var userIdExists = $('input[name="user_id[]"][value="' + user.employee_id + '"]').length > 0;
+                if (userIdExists) {
+                    return; // Skip this iteration if user ID already exists
+                }
+
+                newRow = '<td align="center"><input type="checkbox" checked="checked"  class="form-control"  name="user_id[]" value="' + user.employee_id + '"> </td>' +
+                    '<th>' + user.prefix + user.emp_f_name+ ' ' +user.emp_l_name + '</th>';
+
+                $('#userDataBody').append(newRow);
+            });
+            newRow = '</tr>';
+        },
+        error: function(xhr, status, error) {
+            alert('An error occurred while fetching staff data.');
+        }
+    });
+}
+
+// Handle change event of the staff select dropdown
+ $('#staff').change(function() {
+    var selectedStaffId = $(this).val();
+    fetchData(selectedStaffId);
+    $('#date_time_desc_group').show();
+});
+$('#task_type').change(function() {
+            $('#userDataBody').empty();
+           
+            $('#type_desc_button').show();
+            $('#report_date_time').show();
+
+           // $('#show_staff_pannel').show();
+           // $('#user_and_me_div').show();
+           // $('#only_button').show();
+            
+            var checkbox = document.getElementById('assign_me');
+            if($('#task_type').val() == 'ToDo') {
+                checkbox.checked = true;
+                $('#show_staff_pannel').hide();
+                $('#user_and_me_div').hide();
+                
+            }else{
+                checkbox.checked = false;
+                $('#show_staff_pannel').show();
+                $('#user_and_me_div').show();
+            }
+});
+
+
+// Handle change event of the staff select dropdown
+$('input[type="checkbox"]').change(function() {
+    if ($(this).is(':checked')) {
+        var completionDate = $('#completion_date').val();
+        fetchToDo(completionDate);
+    }
+});
+$('#taskForm').submit(function(event) {
+   
+   
+    event.preventDefault();           
+    var form = $(this);
+    var url = form.attr('action');
+    var method = form.attr('method');
+    var formData = new FormData(form[0]);
+    //console.log(formData);
+    //alert('ok');
+   
+    // Get the selected staff members
+    var selectedStaffMembers = [];
+    $('#selectedStaffMembers').children('div').each(function() {
+        var staffId = $(this).attr('data-staff-id');
+        alert(staffId);
+        selectedStaffMembers.push(staffId);
+
+    });
+    console.log(selectedStaffMembers);
+    // Add the selected staff members to the form data
+    formData.append('selectedStaffMembers', selectedStaffMembers);
+  
+   
+
+
+    // Get the values from the value list
+    var listItems = document.querySelectorAll("#valueList li");
+    var values = [];
+    for (var i = 0; i < listItems.length; i++) {
+        var listItem = listItems[i];
+        var value = listItem.textContent.trim();
+        values.push(value);
+    }
+
+    // Add the values from the value list to the form data
+    var hasDescription = [];
+    for (var j = 0; j < values.length; j++) {
+        formData.append('description_list[]', values[j]);
+        hasDescription.push(values[j]);
+    }
+
+   
+
+      if(!selectedStaffMembers) {
+        event.preventDefault();
+        alert('Please select at least one user.');
+        return false;
+      }
+
+      if (!hasDescription) {
+        event.preventDefault();
+        alert('Please enter at least one record in the description field.');
+        return false;
+      }
+     // console.log(formData);
+     // return false;
+    // Send the AJAX request
+    $.ajax({
+        url: url,
+        type: method,
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {  
+            submitTask();
+            setTimeout(function() {
+                    if (response === "NOUSER") {
+                        alert("Please select at least one user.");
+                    } else if (response === "NOTASK") {
+                        alert("Please enter at least one task.");
+                    } else {
+                        $("#description").val('');
+                        fetchTasks();
+                        var valueList = document.getElementById('valueList');
+                        valueList.innerHTML = '';
+
+                        var checkboxes = document.querySelectorAll('input[name="user_id[]"]');
+                        checkboxes.forEach(function(checkbox) {
+                            //checkbox.checked = false;
+                        });
+                    }
+                    // alert("Task Saved Successfully");
+                   //$("#taskForm")[0].reset();
+                   $("#description").val('');
+                   $("#task_title").val('');
+                   
+                }, 2000);
+
+        },
+        error: function(xhr, status, error) {
+            // Display error message or perform any other actions
+            alert('An error occurred while saving the task.');
+        }
+    });
+});
+});
+function removeRow(button) {
+// Traverse up the DOM to the parent <tr> element and remove it
+var row = button.parentNode.parentNode;
+row.parentNode.removeChild(row);
+}
+
+</script>
+@stop

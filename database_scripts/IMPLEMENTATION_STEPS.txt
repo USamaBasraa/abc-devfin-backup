@@ -1,0 +1,117 @@
+================================================================================
+VERSION TRACKING SYSTEM - IMPLEMENTATION STEPS
+================================================================================
+
+STEP 1: RUN SQL SCRIPTS (In Order)
+================================================================================
+
+1. vendor_quotations_history_sequence.sql
+   - Creates sequence for history table
+   - Creates auto-increment trigger
+   - Creates indexes
+
+2. add_version_number_to_history.sql
+   - Adds VERSION_NUMBER column to history table
+
+3. add_version_tracking_email_log.sql
+   - Adds VE_QR_VERSION column to email log table
+
+Note: SP_VENDOR_QUOTATIONS table columns already added by user:
+      - QR_VERSION
+      - QUANTITY_QUOTED
+      - IS_CURRENT
+
+
+STEP 2: FILES MODIFIED
+================================================================================
+
+Backend Models:
+✓ app/Models/StoreProcurement/VendorEmailLog.php
+  - Added ve_qr_version to fillable array
+
+✓ app/Models/StoreProcurement/VendorQuotation.php
+  - Added qr_version, quantity_quoted, is_current to fillable array
+
+Backend Controller:
+✓ app/Http/Controllers/StoreProcurement/VendorQuotationController.php
+  - Updated sendMailToVendors() method
+    → Tracks request version in email log
+  
+  - Updated store() method
+    → Tracks request version in quotations
+    → Marks old quotations as not current
+    → Creates history entries
+    → Handles first time vs update logic
+
+
+STEP 3: TESTING
+================================================================================
+
+Test Case 1: Send Email
+-----------------------
+1. Open quotation request modal
+2. Select vendors and send email
+3. Check database: ve_qr_version should match current_version
+
+Test Case 2: Submit First Quotation
+-----------------------
+1. Submit vendor quotation
+2. Check SP_VENDOR_QUOTATIONS: qr_version, is_current = 1
+3. Check SP_VENDOR_QUOTATIONS_HISTORY: version_number = 1
+
+Test Case 3: Update Quotation (Negotiation)
+-----------------------
+1. Update same quotation with new price
+2. Check old quotation: is_current = 0
+3. Check new quotation: is_current = 1
+4. Check history: new version created
+
+Test Case 4: Request Revised
+-----------------------
+1. Revise request quantity (creates new version)
+2. Send email again
+3. Check email log: ve_qr_version should be new version
+4. Submit quotation
+5. Check quotation: qr_version should match request version
+
+
+STEP 4: WHAT CHANGED IN OUTPUT?
+================================================================================
+
+Frontend/User Experience:
+- NO CHANGE - Everything works the same for users
+- Success messages now show version numbers
+- Data is tracked in background
+
+Database:
+- Email logs now have version tracking
+- Quotations linked to specific request versions
+- Complete history maintained for audit
+
+
+STEP 5: ROLLBACK (If Needed)
+================================================================================
+
+If something goes wrong:
+
+1. Remove added columns:
+   ALTER TABLE SP_VENDOR_EMAIL_LOG DROP COLUMN VE_QR_VERSION;
+
+2. Restore old model files from git
+
+3. Restore old controller file from git
+
+
+NOTES:
+================================================================================
+- All code has clear English comments
+- Simple step-by-step logic
+- Easy for juniors to understand
+- Database transactions prevent data corruption
+- Version numbers start from 1
+
+
+Questions? Check VERSION_TRACKING_README.md for detailed documentation.
+
+================================================================================
+

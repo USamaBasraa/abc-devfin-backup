@@ -1,0 +1,21 @@
+    474▕         }
+    475▕ 
+    476▕         if (! $this->dbh) {
+    477▕             $e = oci_error();
+  ➜ 478▕             throw new Oci8Exception($e['message'], $e['code']);
+    479▕         }
+    480▕     }
+    481▕ 
+    482▕     /**
+
+      [2m+28 vendor frames [22m
+  29  /var/www/lar8/artisan:37
+      Illuminate\Foundation\Console\Kernel::handle()
+
+   Whoops\Exception\ErrorException 
+
+  Module 'oci8' already loaded
+
+      [2m+1 vendor frames [22m
+  2   [internal]:0
+      Whoops\Run::handleShutdown()

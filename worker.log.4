@@ -1,0 +1,64 @@
+PHP Warning:  PHP Startup: Unable to load dynamic library 'pdo_oci.so' (tried: /usr/lib64/php/modules/pdo_oci.so (libclntsh.so.21.1: cannot open shared object file: No such file or directory), /usr/lib64/php/modules/pdo_oci.so.so (/usr/lib64/php/modules/pdo_oci.so.so: cannot open shared object file: No such file or directory)) in Unknown on line 0
+PHP Warning:  Module 'oci8' already loaded in Unknown on line 0
+PHP Warning:  PHP Startup: Unable to load dynamic library 'pdo_oci' (tried: /usr/lib64/php/modules/pdo_oci (/usr/lib64/php/modules/pdo_oci: cannot open shared object file: No such file or directory), /usr/lib64/php/modules/pdo_oci.so (libclntsh.so.21.1: cannot open shared object file: No such file or directory)) in Unknown on line 0
+PHP Warning:  Module 'sqlsrv' already loaded in Unknown on line 0
+PHP Warning:  Module 'oci8' already loaded in Unknown on line 0
+PHP Warning:  PHP Startup: Unable to load dynamic library 'pdo_oci.so' (tried: /usr/lib64/php/modules/pdo_oci.so (libclntsh.so.21.1: cannot open shared object file: No such file or directory), /usr/lib64/php/modules/pdo_oci.so.so (/usr/lib64/php/modules/pdo_oci.so.so: cannot open shared object file: No such file or directory)) in Unknown on line 0
+PHP Warning:  Module 'oci8' already loaded in Unknown on line 0
+PHP Warning:  PHP Startup: Unable to load dynamic library 'pdo_oci' (tried: /usr/lib64/php/modules/pdo_oci (/usr/lib64/php/modules/pdo_oci: cannot open shared object file: No such file or directory), /usr/lib64/php/modules/pdo_oci.so (libclntsh.so.21.1: cannot open shared object file: No such file or directory)) in Unknown on line 0
+PHP Warning:  Module 'sqlsrv' already loaded in Unknown on line 0
+PHP Warning:  Module 'oci8' already loaded in Unknown on line 0
+
+   Yajra\Pdo\Oci8\Exceptions\Oci8Exception 
+
+  ORA-12170: TNS:Connect timeout occurred
+
+  at /var/www/lar8/vendor/yajra/laravel-pdo-via-oci8/src/Pdo/Oci8.php:478
+    474▕         }
+    475▕ 
+    476▕         if (! $this->dbh) {
+    477▕             $e = oci_error();
+  ➜ 478▕             throw new Oci8Exception($e['message'], $e['code']);
+    479▕         }
+    480▕     }
+    481▕ 
+    482▕     /**
+
+      [2m+28 vendor frames [22m
+  29  /var/www/lar8/artisan:37
+      Illuminate\Foundation\Console\Kernel::handle()
+
+   Whoops\Exception\ErrorException 
+
+  Module 'oci8' already loaded
+
+      [2m+1 vendor frames [22m
+  2   [internal]:0
+      Whoops\Run::handleShutdown()
+
+   Yajra\Pdo\Oci8\Exceptions\Oci8Exception 
+
+  ORA-12170: TNS:Connect timeout occurred
+
+  at /var/www/lar8/vendor/yajra/laravel-pdo-via-oci8/src/Pdo/Oci8.php:478
+    474▕         }
+    475▕ 
+    476▕         if (! $this->dbh) {
+    477▕             $e = oci_error();
+  ➜ 478▕             throw new Oci8Exception($e['message'], $e['code']);
+    479▕         }
+    480▕     }
+    481▕ 
+    482▕     /**
+
+      [2m+28 vendor frames [22m
+  29  /var/www/lar8/artisan:37
+      Illuminate\Foundation\Console\Kernel::handle()
+
+   Whoops\Exception\ErrorException 
+
+  Module 'oci8' already loaded
+
+      [2m+1 vendor frames [22m
+  2   [internal]:0
+      Whoops\Run::handleShutdown()

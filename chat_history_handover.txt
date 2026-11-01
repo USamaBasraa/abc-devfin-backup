@@ -1,0 +1,168 @@
+Faculty Financials - Store Procurement Chat Handover
+Date: 2026-06-23
+
+Purpose:
+This file stores the working history and current implementation state so future work can continue from here without losing context.
+
+==================================================
+1) Re-appropriation Module (/budgets/list)
+==================================================
+- Re-appropriation modal target flow stabilized:
+  - Target Budget Head selection fixed
+  - Select Target Item AJAX loading corrected
+  - Head/item loading logic refined over multiple iterations
+- Submission UX improved:
+  - "Processing..." stuck behavior reduced with stronger frontend AJAX handling
+  - Button-state reset and modal close fallbacks improved
+- Approval flow clarified:
+  - Send-for-approval sets pending state
+  - Endpoints:
+    - /reappropriation/approvals
+    - /reappropriation/approve
+    - /reappropriation/decline
+- Current approval access remains username-based (hardcoded style), not fully role-driven.
+
+==================================================
+2) Sync Protection for Re-appropriated Items
+==================================================
+- Implemented lock protection to avoid Pinnacle overwrite:
+  - sync_lock_flag = YES
+  - sync_lock_reason set on impacted items
+- Sync service updated to skip locked rows.
+- Runtime auto-DDL/schema mutations removed from application flow per requirement.
+
+==================================================
+3) DB Script Updates (Manual SQL Only)
+==================================================
+File updated: store_items_schema_script.txt
+
+Added SQL for:
+- SP_BUDGET_ITEMS:
+  - SYNC_LOCK_FLAG VARCHAR2(3) DEFAULT 'NO'
+  - SYNC_LOCK_REASON VARCHAR2(100)
+- SP_REAPPROPRIATE_HISTORY:
+  - TRANSFER_GROUP_ID VARCHAR2(64)
+  - FROM_BH_ID NUMBER
+  - TO_BH_ID NUMBER
+- Indexes:
+  - IDX_SPRH_FROM_ITEM
+  - IDX_SPRH_TO_ITEM
+  - IDX_SPRH_TRANSFER_GROUP
+
+==================================================
+4) Quotation Request Type Separation
+==================================================
+- /quotation-request-create flow adjusted so normal procurement does not mix with store_items records.
+- request_type-based filtering added where needed (schema-aware).
+
+==================================================
+5) RFQ PDF Improvements (/quotation-requests/{id}/rfq-pdf)
+==================================================
+- RFQ PDF layout redesigned to cleaner professional style.
+- Color theme adjusted per feedback to simple black/white-neutral style.
+- RFQ filename/title professionalized with cleaner naming.
+
+==================================================
+6) PO PDF Filename Standardization (/purchase-orders/{id})
+==================================================
+- Professional naming format implemented with:
+  - PO code
+  - vendor slug
+  - timestamp with seconds
+  - BNU suffix
+- Pattern examples:
+  - Purchase-Order-<PO_CODE>-<VENDOR>-<YYYYMMDD-HHMMSS>-BNU.pdf
+  - RFQ-<PO_CODE>-<VENDOR>-<YYYYMMDD-HHMMSS>-BNU.pdf
+
+==================================================
+7) Vendor Email Sending Flow (/sp/quotations)
+==================================================
+- Recipient behavior confirmed:
+  - Default: sp_vendor.vendor_email
+  - Override: if MAIL_FORCE_TO is set in .env, all emails go to that forced address.
+
+==================================================
+8) Vendor RFQ Email Template Final State
+==================================================
+File: resources/views/emails/store_procurement/vendor_rfq.blade.php
+
+- Header background set to white.
+- Logo set to: https://cms.bnu.edu.pk/assets/images/bg/bnu_logo.png
+- Copy rewritten to professional tone.
+- Headline finalized:
+  "Request for Quotation (RFQ) Invitation"
+- Black/white-neutral visual style retained.
+- "Review Request & Submit Quote" button removed.
+
+==================================================
+9) Vendor Email Subject Line
+==================================================
+File: app/Services/StoreProcurement/VendorQuotationEmailService.php
+
+Subject optimized to:
+"Action Required: RFQ <RFQ_NO> | Submit Your Best Quote for <Item Title>"
+
+==================================================
+10) PO/Recommendation Duplicate Submission & Status Fix
+==================================================
+Issue:
+- After first recommendation/process, action still appeared again in vendor quotation modal.
+- Also mismatch seen between /sp/quotations and /quotation/{id}/vendor-quotations screens.
+
+Root cause:
+- Some logic checked only Recommendation table.
+- Some logic relied only on qr_id approvals; legacy/alternate records can be linked through po_id.
+- Header sometimes showed View PO even when PO number not generated yet.
+
+Fixes implemented:
+- Controller guard strengthened in QuotationRequestController@storeRecommendationAndPO:
+  - Blocks duplicate submission if any of these exists:
+    - approvals by qr_id
+    - approvals by linked po_id
+    - existing recommendation for qr_id
+    - existing purchase order for qr_id
+  - Returns 409 with already_submitted marker for frontend handling.
+- QuotationRequestController@viewVendorQuotations:
+  - approvalAlreadySubmitted now checks both qr_id and linked po_id.
+- related_vendor_quotations.blade.php:
+  - Action rendering updated:
+    - show Process only when not already submitted and no recommendation/PO complete state
+    - show "Already Recommended" badge when approval flow already exists
+  - Submit button hardening:
+    - disable while request in flight
+    - prevent double click
+    - handle 409 duplicate response cleanly
+  - Header PO display corrected:
+    - show "View PO: <po_no>" only when po_status == generated and po_no exists
+    - otherwise show "PO Pending Generation"
+
+Validation done:
+- PHP syntax check passed for QuotationRequestController.php
+- No linter errors on edited files
+
+==================================================
+11) Key Files Modified (Consolidated)
+==================================================
+- app/Http/Controllers/StoreProcurement/BudgetController.php
+- resources/views/store_procurement/budget/partials/reappropriate_modal_content.blade.php
+- resources/views/store_procurement/budget/list.blade.php
+- app/Services/StoreProcurement/BudgetAnnexureSyncService.php
+- app/Models/StoreProcurement/BudgetItem.php
+- store_items_schema_script.txt
+- app/Http/Controllers/StoreProcurement/QuotationRequestController.php
+- app/Http/Controllers/StoreProcurement/VendorQuotationController.php
+- app/Http/Controllers/StoreProcurement/PurchaseOrderController.php
+- app/Services/StoreProcurement/VendorQuotationEmailService.php
+- resources/views/emails/store_procurement/vendor_rfq.blade.php
+- resources/views/store_procurement/purchase_order/related_vendor_quotations.blade.php
+- routes/procurement/procurement.web.php
+
+==================================================
+Current Next-Step Reference
+==================================================
+If user reports any further PO status mismatch:
+1) Check sp_po_approvals entries by both qr_id and po_id
+2) Check sp_purchase_order record (po_status, po_no, qr_id, po_id)
+3) Ensure UI condition uses generated + po_no for final "View PO"
+4) Keep duplicate-submit guards server-side (not UI-only)
+
